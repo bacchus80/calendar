@@ -45,6 +45,8 @@ You can learn more in the [Create React App documentation](https://facebook.gith
 
 To learn React, check out the [React documentation](https://reactjs.org/).
 
+Put API key in the .env file with the name REACT_APP_API_URL, like this REACT_APP_API_URL=url_for_the_api
+
 ## LIMITATIONS
 
 Data is fetched using native fuction since no package is required for this.
@@ -57,7 +59,5 @@ is executed on every week load.
 
 Date
 Personally I would like to have used dayjs or momentjs for better and easier date handling, but I dont know if this is allowed. Hence plain javascript date functions is being used.
-
-Creating an event not finished, there is no form validation and no event validation (no check if new event overlaps with existing events) so far.
 
 No support for displaying overlapping events

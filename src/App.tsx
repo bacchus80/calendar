@@ -5,6 +5,7 @@ import {
   getFirstDayOfWeek,
   getLastDayOfWeek,
   addDaysToDate,
+  getStartOfDay,
 } from "./utils/dateFunctions";
 import "./App.css";
 import Alert from "@mui/material/Alert";
@@ -17,30 +18,37 @@ import { CalendarHolder } from "./App.styles";
 export type viewWeek = "prev" | "current" | "next";
 
 function App() {
-  const todaysDate: Date = new Date();
+  const todaysDate: Date = new Date(getStartOfDay(new Date()));
   const [currentDate, setCurrenDate] = useState<Date>(todaysDate);
-  const [firstday, setFirstday] = useState<Date>(
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState<Date>(
     getFirstDayOfWeek(currentDate)
   );
+  const [lastDayOfWeek, setLastDayOfWeek] = useState<Date>(
+    getLastDayOfWeek(todaysDate)
+  );
+  //const [refetch, setRefetch] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
-  const [lastday, setLastday] = useState<Date>(getLastDayOfWeek(todaysDate));
-  const { events, error, isError } = useFindEvents({
-    startDate: firstday,
-    endDate: lastday,
+  const [lastFetchTimenstamp, setLastFetchTimenstamp] =
+    useState<Date>(todaysDate);
+  const { events, error, isLoading } = useFindEvents({
+    startDate: firstDayOfWeek,
+    endDate: lastDayOfWeek,
+    lastFetchTimenstamp: lastFetchTimenstamp,
   });
-
-  function switchWeek(type: viewWeek) {
-    let updatedDate = todaysDate;
-    if (type == "prev") {
-      updatedDate = addDaysToDate(currentDate, -7);
-    } else if (type == "next") {
-      updatedDate = addDaysToDate(currentDate, 7);
-    }
-    setCurrenDate(updatedDate);
-    setFirstday(getFirstDayOfWeek(updatedDate));
-    setLastday(getLastDayOfWeek(updatedDate));
-  }
-
+  const viewNextWeek = () => {
+    viewWeek(addDaysToDate(currentDate, 7));
+  };
+  const viewPreviousWeek = () => {
+    viewWeek(addDaysToDate(currentDate, -7));
+  };
+  const viewCurrentWeek = () => {
+    viewWeek(todaysDate);
+  };
+  const viewWeek = (date: Date) => {
+    setCurrenDate(date);
+    setFirstDayOfWeek(getFirstDayOfWeek(date));
+    setLastDayOfWeek(getLastDayOfWeek(date));
+  };
   const handleNetworkErrorClose = (
     event?: React.SyntheticEvent | Event,
     reason?: string
@@ -51,6 +59,10 @@ function App() {
     setOpen(false);
   };
 
+  const handleRefetch = () => {
+    setLastFetchTimenstamp(new Date());
+  };
+
   useEffect(() => {
     if (error) {
       setOpen(true);
@@ -59,6 +71,7 @@ function App() {
 
   return (
     <div className="App">
+      {isLoading && <div>laddar</div>}
       <Snackbar
         onClose={handleNetworkErrorClose}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
@@ -82,7 +95,10 @@ function App() {
           currentDate={currentDate}
           todaysDate={todaysDate}
           events={events}
-          switchWeek={switchWeek}
+          viewPreviousWeek={viewPreviousWeek}
+          viewCurrentWeek={viewCurrentWeek}
+          viewNextWeek={viewNextWeek}
+          refetchEvents={handleRefetch}
         />
       </CalendarHolder>
     </div>

@@ -1,6 +1,4 @@
-// API URL shoud probably be saved in a .ENV file
-const BASE_URL =
-  "https://crudcrud.com/api/c974ef5540f34583aacee5422b10fc66/my-events/";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 export const apiRoutes = {
   events: BASE_URL,

@@ -1,42 +1,14 @@
-import { useState } from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import { Texts } from "../../constants";
 import { CalendarEvent } from "../../models";
 
 export interface EventFormProps {
-  event?: CalendarEvent;
+  event: CalendarEvent;
+  handleChange: (event: any) => void;
 }
 
-export function EventForm({ event }: EventFormProps) {
-
-  const initEvent: CalendarEvent = event
-    ? {
-        _id: event._id,
-        activity: event.activity,
-        location: event.location,
-        startDate: event.startDate,
-        endDate: event.endDate,
-      }
-    : {
-        // _id: "-1",
-        activity: "",
-        location: "",
-        startDate: "",
-        endDate: "",
-      };
-
-  const [eventData, setEventData] = useState<CalendarEvent>(initEvent);
-
-  const handleChange = (event: any) => {
-    setEventData({ ...eventData, [event.target.name]: event.target.value });
-  };
-
-  const handleSubmit = (event: any) => {
-    // prevents the submit button from refreshing the page
-    event.preventDefault();
-  };
-
+export function EventForm({ event, handleChange }: EventFormProps) {
   return (
     <Box
       component="form"
@@ -45,13 +17,12 @@ export function EventForm({ event }: EventFormProps) {
       }}
       noValidate
       autoComplete="off"
-      onSubmit={handleSubmit}
     >
       <TextField
         id="outlined-startDate-input"
         label={Texts.startDate}
         type="text"
-        value={eventData.startDate}
+        value={event.startDate}
         name="startDate"
         onChange={handleChange}
       />
@@ -59,7 +30,7 @@ export function EventForm({ event }: EventFormProps) {
         id="outlined-endDate-input"
         label={Texts.endDate}
         type="text"
-        value={eventData.endDate}
+        value={event.endDate}
         name="endDate"
         onChange={handleChange}
       />
@@ -67,7 +38,7 @@ export function EventForm({ event }: EventFormProps) {
         id="outlined-activity-input"
         label={Texts.activity}
         type="text"
-        value={eventData.activity}
+        value={event.activity}
         name="activity"
         onChange={handleChange}
       />
@@ -75,11 +46,16 @@ export function EventForm({ event }: EventFormProps) {
         id="outlined-location-input"
         label={Texts.location}
         type="text"
-        value={eventData.location}
+        value={event.location}
         name="location"
         onChange={handleChange}
       />
+      {/*
       <br />
+              <Button variant="outlined" type="submit" onClick={handleClick}>
+          {Texts.save}
+        </Button>
+    */}
     </Box>
   );
 }

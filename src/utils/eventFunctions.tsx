@@ -51,12 +51,10 @@ export function splitCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
             _id: event._id,
             activity: event.activity,
             location: event.location,
-            startDate:
-              i === 0 ? event.startDate : String(getStartOfDay(currentDate)),
+            startDate: i === 0 ? event.startDate : getStartOfDay(currentDate),
             endDate:
-              i + 1 === diffDays
-                ? event.endDate
-                : String(getEndOfDay(currentDate)),
+              i + 1 === diffDays ? event.endDate : getEndOfDay(currentDate),
+            isSplittedEvent: true,
           };
           newEvents.push(splittedEvent);
         }
@@ -66,5 +64,3 @@ export function splitCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
   }
   return [];
 }
-
-export function createEvent(event: CalendarEvent) {}

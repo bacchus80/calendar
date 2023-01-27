@@ -5,8 +5,12 @@ import { getStartOfDay, getEndOfDay } from "../../utils/dateFunctions";
 import { splitCalendarEvents } from "../../utils/eventFunctions";
 
 export interface useFindEventsProps {
+  /** Start date to filter events from */
   startDate: Date;
+  /** End date to filter events from */
   endDate: Date;
+  /** Timestamp when hook was used */
+  lastFetchTimenstamp: Date;
 }
 
 /**
@@ -22,49 +26,38 @@ export interface useFindEventsProps {
  * Fetched events are "filtered" in this function and events expanding over
  * midnight is splitted to new events (each event cover only 1 day maximum)
  */
-export function useFindEvents({ startDate, endDate }: useFindEventsProps) {
+export function useFindEvents({
+  startDate,
+  endDate,
+  lastFetchTimenstamp,
+}: useFindEventsProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isError, setIsError] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
   const [isLoading, setIsloading] = useState<boolean>(false);
 
   useEffect(() => {
-    const searchFromDate: Date = getStartOfDay(startDate);
-    const searchToDate: Date = getEndOfDay(endDate);
+    const searchFromDate: string = getStartOfDay(startDate);
+    const searchToDate: string = getEndOfDay(endDate);
 
     async function fetchData() {
       try {
         setIsloading(true);
-        /*
-           var myHeaders = new Headers();
-       // myHeaders.append('pragma', 'no-cache');
-        myHeaders.append('Cache-Control', 'no-cache');
-        myHeaders.append('Content-Type', 'application/json');
-        //myHeaders.append('Access-Control-Allow-Origin', apiRoutes.events);
 
-        const inputData: CalendarEvent = {
-          _id: "63cd1dbc07307e03e8c74713",
-          activity: "Test 4.3.44",
-          startDate: "2023-01-25 15:00",
-          endDate: "2023-01-25 15:15",
-          location: "Hemma igen 4.2",
+        const settings = {
+          method: "GET",
+          headers: {
+            Accept: "application/json, text/plain",
+            "Content-Type": "application/json;charset=UTF-8",
+          },
         };
 
-        var myInit = {
-          method: 'PUT',
-          headers: myHeaders,
-          //body: inputData,
-          body: JSON.stringify(inputData),
-          //mode: 'cors',
-        };
-*/
-        const response = await fetch(apiRoutes.events);
+        const response = await fetch(String(apiRoutes.events), settings);
         const data: CalendarEvent[] = await response.json();
-
         const items = data.filter(function (item) {
           return (
-            new Date(item.startDate) >= searchFromDate &&
-            new Date(item.startDate) <= searchToDate
+            new Date(item.startDate) >= new Date(searchFromDate) &&
+            new Date(item.startDate) < new Date(searchToDate)
           );
         });
 
@@ -84,7 +77,7 @@ export function useFindEvents({ startDate, endDate }: useFindEventsProps) {
       }
     }
     fetchData();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, lastFetchTimenstamp]);
 
   return { error, isError, isLoading, events };
 }

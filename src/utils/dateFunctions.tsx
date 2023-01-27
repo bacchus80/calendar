@@ -19,13 +19,6 @@ export function getDateFromDate(date: string): string {
 }
 
 /**
- * Returns end of selected day YYYY-MM-DD 23:59
- */
-export function getEndOfDay(date: Date): Date {
-  return new Date(date.toLocaleDateString("sv") + " 23:59");
-}
-
-/**
  * Returns the first day of current week
  */
 export function getFirstDayOfWeek(date: Date): Date {
@@ -59,8 +52,17 @@ export function getMondayForDate(date: Date): Date {
 /**
  * Returns start of selected day YYYY-MM-DD 00:00
  */
-export function getStartOfDay(date: Date): Date {
-  return new Date(date.toLocaleDateString("sv") + " 00:00");
+export function getStartOfDay(date: Date): string {
+  return date.toLocaleDateString("sv") + " 00:00";
+  //return new Date(date.toLocaleDateString("sv") + " 00:00");
+}
+
+/**
+ * Returns end of selected day YYYY-MM-DD 23:59
+ */
+export function getEndOfDay(date: Date): string {
+  return date.toLocaleDateString("sv") + " 23:59";
+  //return new Date(date.toLocaleDateString("sv") + " 23:59");
 }
 
 export function getDateInFormatYYYYMMDD(date: string): string {
@@ -134,4 +136,13 @@ export function getMonthNames(): string[] {
     Texts.december,
   ];
   return months;
+}
+
+/**
+ * Check whether a date is valid date or not
+ *
+ * @returns boolean
+ */
+export function isValidDate(date: Date | string): boolean {
+  return !isNaN(Date.parse(String(date)));
 }

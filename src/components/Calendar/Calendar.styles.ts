@@ -29,6 +29,9 @@ export const StyledDayItem = styled("div")`
   border-bottom: 1px solid ${COLORS["e1e1e1"]};
   border-top: 1px solid ${COLORS["e1e1e1"]};
   background-color: ${COLORS["fafbfc"]};
+  &:hover {
+    cursor: pointer;
+  }
 `;
 
 export const Timeline = styled("div")`
@@ -70,6 +73,10 @@ export const CalEvent = styled("div")<{
   top: ${(p) => (p.topPosition ? `${p.topPosition}px` : "auto")};
   &.midnight-event {
     border-top-style: none;
+  }
+  &:hover {
+    cursor: pointer;
+    opacity: 0.9;
   }
 `;
 

@@ -1,7 +1,6 @@
 import { CSSProperties, ReactElement, useState } from "react";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import {
@@ -30,7 +29,6 @@ import {
   Timeline,
   TimeMarker,
 } from "./Calendar.styles";
-import { viewWeek } from "../../App";
 
 export interface CalerdarProps {
   /* Calendar exents */
@@ -40,7 +38,10 @@ export interface CalerdarProps {
   /* Selected date */
   currentDate: Date;
   /** Switch week */
-  switchWeek: (type: viewWeek) => void;
+  viewPreviousWeek: () => void;
+  viewCurrentWeek: () => void;
+  viewNextWeek: () => void;
+  refetchEvents: () => void;
 }
 
 interface CalendarDay {
@@ -55,24 +56,36 @@ export function Calendar({
   todaysDate,
   currentDate,
   events,
-  switchWeek,
+  viewPreviousWeek,
+  viewCurrentWeek,
+  viewNextWeek,
+  refetchEvents,
 }: CalerdarProps) {
   const months = getMonthNames();
 
   const [open, setOpen] = useState(false);
   const [clickYPosition, setClickYPosition] = useState<number>(0);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(
-    undefined
-  );
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>({
+    activity: "",
+    endDate: "",
+    location: "",
+    startDate: "",
+    _id: "-1",
+  });
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    refetchEvents();
+    setOpen(false);
+  };
 
   const currentMonthName = months[currentDate.getMonth()];
   const currentYear: number = currentDate.getFullYear();
 
   // the days of selected week
-  const calendarDays: CalendarDay[] = getCalendarDaysForSelectedWeek(currentDate, events);
- 
+  const calendarDays: CalendarDay[] = getCalendarDaysForSelectedWeek(
+    currentDate,
+    events
+  );
 
   const createNewEvent = (date: any) => {
     const cleanDate = getDateInFormatYYYYMMDD(date);
@@ -122,16 +135,16 @@ export function Calendar({
         >
           <Button
             title={Texts.viewPreviousWeek}
-            onClick={() => switchWeek("prev")}
+            onClick={() => viewPreviousWeek()}
             variant="outlined"
             startIcon={<ArrowBackIosIcon />}
           />
-          <Button onClick={() => switchWeek("current")} variant="outlined">
+          <Button onClick={() => viewCurrentWeek()} variant="outlined">
             {Texts.today}
           </Button>
           <Button
             title={Texts.viewNextWeek}
-            onClick={() => switchWeek("next")}
+            onClick={() => viewNextWeek()}
             variant="outlined"
             startIcon={<ArrowForwardIosIcon />}
           />
@@ -220,7 +233,7 @@ export function Calendar({
 function getDayHours(): ReactElement[] {
   const hours: ReactElement[] = [];
   for (var i = 0; i < 24; ++i) {
-    hours[i] = <TimeMarker key={i}>{getHourStartTime(i)}</TimeMarker>;
+    hours.push(<TimeMarker key={i}>{getHourStartTime(i)}</TimeMarker>);
   }
   return hours;
 }
@@ -244,7 +257,10 @@ function getEventCSSHeightAndTtartPosition(event: CalendarEvent) {
 }
 
 // Get calendar days for selected week
-function getCalendarDaysForSelectedWeek(currentDate: Date, events: CalendarEvent[]): CalendarDay[]{
+function getCalendarDaysForSelectedWeek(
+  currentDate: Date,
+  events: CalendarEvent[]
+): CalendarDay[] {
   let tmp: Date = new Date(currentDate.valueOf());
   const calendarDays: CalendarDay[] = [];
 

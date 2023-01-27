@@ -13,4 +13,7 @@ export interface CalendarEvent {
   endDate: string;
   /** Location for the event */
   location: string;
+  /** GUI attributed for splitted event (event
+   * explanding over midnight */
+  isSplittedEvent?: boolean;
 }

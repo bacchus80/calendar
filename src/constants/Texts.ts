@@ -4,6 +4,8 @@
  */
 export enum Texts {
   today = "Today",
+  delete = "Delete",
+  update = "Update",
   save = "Save",
   viewPreviousWeek = "View previous week",
   viewNextWeek = "View next week",
