@@ -1,0 +1,22 @@
+# Ignore everything
+/*
+
+# Exclude folders that should not be ignored
+!/client/
+!/reactChallenge/
+!/reactPayment/
+!/server/
+
+# Ignore sub folders
+/client/vendors/
+/client/worker/vendors/
+
+# Ignore folder contents
+/client/worker.js
+/client/worker.js.map
+
+# Ignore all node_modules folders
+*/node_modules/
+
+# Ignore all JSON files
+*.json

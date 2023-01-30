@@ -30,7 +30,11 @@ function App() {
   const [open, setOpen] = useState<boolean>(false);
   const [lastFetchTimenstamp, setLastFetchTimenstamp] =
     useState<Date>(todaysDate);
-  const { events, error, isLoading } = useFindEvents({
+  const {
+    events,
+    error,
+    isLoading: eventsAreLoading,
+  } = useFindEvents({
     startDate: firstDayOfWeek,
     endDate: lastDayOfWeek,
     lastFetchTimenstamp: lastFetchTimenstamp,
@@ -71,7 +75,6 @@ function App() {
 
   return (
     <div className="App">
-      {isLoading && <div>laddar</div>}
       <Snackbar
         onClose={handleNetworkErrorClose}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
@@ -79,7 +82,7 @@ function App() {
         autoHideDuration={2000}
       >
         <Alert severity="error" sx={{ width: "100%" }}>
-          {Texts.someNetworkErrorOccurred}
+          {Texts.aNetworkErrorOccurred}
           <IconButton
             size="small"
             aria-label="close"
@@ -95,6 +98,9 @@ function App() {
           currentDate={currentDate}
           todaysDate={todaysDate}
           events={events}
+          startViewingHour={8}
+          endViewingHour={17}
+          eventsAreLoading={eventsAreLoading}
           viewPreviousWeek={viewPreviousWeek}
           viewCurrentWeek={viewCurrentWeek}
           viewNextWeek={viewNextWeek}

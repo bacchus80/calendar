@@ -12,9 +12,7 @@ export function EventForm({ event, handleChange }: EventFormProps) {
   return (
     <Box
       component="form"
-      sx={{
-        "& .MuiTextField-root": { m: 1, width: "25ch" },
-      }}
+      sx={{ "& .MuiTextField-root": { m: 1, width: "25ch" } }}
       noValidate
       autoComplete="off"
     >
@@ -36,7 +34,7 @@ export function EventForm({ event, handleChange }: EventFormProps) {
       />
       <TextField
         id="outlined-activity-input"
-        label={Texts.activity}
+        label={Texts.activity + "*"}
         type="text"
         value={event.activity}
         name="activity"

@@ -4,7 +4,12 @@ import {
   getEndOfDay,
   getDateFromDate,
   addDaysToDate,
+  getTimeFromDate,
+  getDateInFormatYYYYMMDD,
+  getHourStartTime,
+  isValidStartAndEndTime,
 } from "../utils/dateFunctions";
+import { config } from "../constants";
 
 /**
  * Return events for selected date given a set of calendar evets
@@ -30,6 +35,8 @@ export function getDayEvents(
 
 /**
  * Splits events propatating over midnight
+ *
+ * @returns Calendar events
  */
 export function splitCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
   if (events && events.length > 0) {
@@ -63,4 +70,133 @@ export function splitCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
     return newEvents;
   }
   return [];
+}
+
+/**
+ * Returns of top position and height for the event
+ */
+export function getEventCSSHeightAndTtartPosition(event: CalendarEvent) {
+  const startTime = getTimeFromDate(event.startDate);
+  const endTime = getTimeFromDate(event.endDate);
+  const diff =
+    new Date(event.endDate).valueOf() - new Date(event.startDate).valueOf();
+  const hourStart: number = Number(startTime.split(":")[0]);
+  const minuteStart: number = Number(startTime.split(":")[1]);
+  const hourEnd: number = Number(endTime.split(":")[0]);
+  const hourDiff: number = Math.floor(hourEnd - hourStart);
+  const startPosition: number =
+    minuteStart + Number(hourStart * config.hourSlotHeight - 1); //diffTop/1000/60;
+  const eventHeight: number = diff / 1000 / 60 + hourDiff + 1 + 1;
+
+  return [startPosition, eventHeight];
+}
+
+/** Get an empty calendar event */
+export function getEmptyEvent(): CalendarEvent {
+  return {
+    activity: "",
+    endDate: "",
+    location: "",
+    startDate: "",
+    _id: "",
+  };
+}
+
+export function emptyEventWithStartAndEndTimestamp(
+  date: any,
+  clickYPosition: number
+): CalendarEvent {
+  const cleanDate = getDateInFormatYYYYMMDD(date);
+  const startTime = getHourStartTime(clickYPosition);
+  const endTime = getHourStartTime(1 + clickYPosition);
+  const emptyEvent = getEmptyEvent();
+  emptyEvent.startDate = cleanDate + " " + startTime;
+  emptyEvent.endDate = cleanDate + " " + endTime;
+
+  return emptyEvent;
+}
+
+/**
+ * Validates if an event can be posted
+ *
+ * @returns boolean
+ */
+export function isValidEventData(event: CalendarEvent): boolean {
+  return isValidStartAndEndTime(event) && event.activity !== "";
+}
+
+/**
+ * Checks if an events starttime exist in an other event
+ *
+ * @returns boolean
+ */
+export function isStartimeOverlapping(
+  eventToCheck: CalendarEvent,
+  compareEvent: CalendarEvent
+): boolean {
+  return (
+    Date.parse(compareEvent.startDate) < Date.parse(eventToCheck.startDate) &&
+    Date.parse(eventToCheck.startDate) < Date.parse(compareEvent.endDate)
+  );
+}
+
+/**
+ * Checks if an events endtime exist in an other event
+ *
+ * @returns boolean
+ */
+export function isEndTimeOverlapping(
+  eventToCheck: CalendarEvent,
+  compareEvent: CalendarEvent
+): boolean {
+  return (
+    Date.parse(compareEvent.startDate) < Date.parse(eventToCheck.endDate) &&
+    Date.parse(eventToCheck.endDate) < Date.parse(compareEvent.endDate)
+  );
+}
+
+/**
+ * Checks if an event can fit inside another event
+ *
+ * @returns boolean
+ */
+export function isEventFittingInsideOtherEvent(
+  eventToCheck: CalendarEvent,
+  compareEvent: CalendarEvent
+): boolean {
+  return (
+    Date.parse(compareEvent.startDate) < Date.parse(eventToCheck.startDate) &&
+    Date.parse(compareEvent.endDate) > Date.parse(eventToCheck.endDate)
+  );
+}
+
+/**
+ * Checks if an event can include another event
+ *
+ * @returns boolean
+ */
+export function isEventIncludingOtherEvent(
+  eventToCheck: CalendarEvent,
+  compareEvent: CalendarEvent
+): boolean {
+  return (
+    Date.parse(eventToCheck.startDate) < Date.parse(compareEvent.startDate) &&
+    Date.parse(eventToCheck.endDate) > Date.parse(compareEvent.endDate)
+  );
+}
+
+/**
+ * Checks in an event is overlapping with another event
+ * @returns boolean
+ */
+export function isEventOverlapping(
+  eventToCheck: CalendarEvent,
+  compareEvent: CalendarEvent
+): boolean {
+  return (
+    isStartimeOverlapping(eventToCheck, compareEvent) ||
+    isEndTimeOverlapping(eventToCheck, compareEvent) ||
+    isEventFittingInsideOtherEvent(eventToCheck, compareEvent) ||
+    isEventIncludingOtherEvent(eventToCheck, compareEvent)
+  );
 }

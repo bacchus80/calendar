@@ -1,10 +1,22 @@
-import styled from "styled-components";
-import { COLORS } from "../../constants";
+import styled, { keyframes, css } from "styled-components";
+import { COLORS, config } from "../../constants";
 
-export const CalendarHolder = styled("div")`
+const pulsate = keyframes`
+  0%   {background-color: ${COLORS["fafbfc"]};}
+  50%   {background-color: ${COLORS["e1e1e1"]};}
+  100% {background-color: ${COLORS["fafbfc"]};}
+`;
+
+export const DayNameHolder = styled("div")`
   display: grid;
   grid-template-columns: auto 1fr;
-  margin-top: 2rem;
+`;
+export const CalendarHolder = styled(DayNameHolder) <{
+  viewHeight: number;
+}>`
+  position: relative;
+  overflow: scroll;
+  height: ${(p) => (p.viewHeight ? `${p.viewHeight}px` : "auto")};
 `;
 
 export const StyledContainer = styled("div")`
@@ -15,6 +27,8 @@ export const StyledContainer = styled("div")`
 export const StyledItem = styled("div")`
   flex: 1 0 14%;
   height: 48px;
+  border-bottom: solid 1px ${COLORS["efefef"]};
+  width: ${config.widthHourMarkers}px;
 `;
 
 export const MonthAndName = styled("div")`
@@ -22,13 +36,20 @@ export const MonthAndName = styled("div")`
   color: ${COLORS["444444"]};
 `;
 
-export const StyledDayItem = styled("div")`
+export const StyledDayItem = styled("div") <{
+  isLoading?: boolean;
+}>`
   flex: 1 0 14%;
-  height: 1464px;
+  height: ${24 * config.hourSlotHeight}px;
   border-right: 1px solid ${COLORS["e1e1e1"]};
   border-bottom: 1px solid ${COLORS["e1e1e1"]};
-  border-top: 1px solid ${COLORS["e1e1e1"]};
   background-color: ${COLORS["fafbfc"]};
+  ${({ isLoading }) =>
+    isLoading &&
+    css`
+      animation: ${pulsate} 2s linear infinite;
+    `}
+
   &:hover {
     cursor: pointer;
   }
@@ -38,10 +59,11 @@ export const Timeline = styled("div")`
   display: grid;
 `;
 
-export const CalendarHeader = styled("div")`
+export const StyledCalendarHeader = styled("div")`
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
+  margin-bottom: 1rem;
 `;
 
 export const CalendarMonthNameYear = styled("div")`
@@ -53,11 +75,12 @@ export const CalendarMonthNameYear = styled("div")`
 export const TimeMarker = styled("div")`
   height: 60px;
   border-right: 1px solid ${COLORS["e1e1e1"]};
-  border-top: 1px solid ${COLORS["e1e1e1"]};
+  border-bottom: 1px solid ${COLORS["e1e1e1"]};
   font-size: 80%;
+  width: ${config.widthHourMarkers}px;
 `;
 
-export const CalEvent = styled("div")<{
+export const StyledCalEvent = styled("div") <{
   itemHeight: string;
   topPosition: string;
 }>`

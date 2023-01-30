@@ -1,4 +1,5 @@
-import { Texts } from "../constants";
+import { Texts, config } from "../constants";
+import { CalendarEvent } from "../models";
 
 /**
  * Add days to a date
@@ -43,6 +44,9 @@ export function getHourStartTime(hour: number): string {
   return ("0" + hour).slice(-2) + ":00";
 }
 
+/**
+ * Get date for monday in the week for a date
+ */
 export function getMondayForDate(date: Date): Date {
   var day = date.getDay() || 7;
   if (day !== 1) date.setHours(-24 * (day - 1));
@@ -53,18 +57,19 @@ export function getMondayForDate(date: Date): Date {
  * Returns start of selected day YYYY-MM-DD 00:00
  */
 export function getStartOfDay(date: Date): string {
-  return date.toLocaleDateString("sv") + " 00:00";
-  //return new Date(date.toLocaleDateString("sv") + " 00:00");
+  return date.toLocaleDateString("sv") + " " + config.startTimeMidnght;
 }
 
 /**
- * Returns end of selected day YYYY-MM-DD 23:59
+ * Returns end of selected day in following format: YYYY-MM-DD 23:59
  */
 export function getEndOfDay(date: Date): string {
   return date.toLocaleDateString("sv") + " 23:59";
-  //return new Date(date.toLocaleDateString("sv") + " 23:59");
 }
 
+/**
+ * Returns a date in format YYYY-MM-DD
+ */
 export function getDateInFormatYYYYMMDD(date: string): string {
   return new Date(date).toLocaleDateString("sv");
 }
@@ -139,10 +144,25 @@ export function getMonthNames(): string[] {
 }
 
 /**
- * Check whether a date is valid date or not
+ * Returns a boolean whether a date is valid date
  *
  * @returns boolean
  */
 export function isValidDate(date: Date | string): boolean {
   return !isNaN(Date.parse(String(date)));
+}
+
+/**
+ * Checks if an event has valid start and end time
+ * Both start and endtime must be valid timestamps
+ * and endtime must be greater than starttime
+ *
+ * @returns boolean
+ */
+export function isValidStartAndEndTime(event: CalendarEvent): boolean {
+  return (
+    isValidDate(event.endDate) &&
+    isValidDate(event.startDate) &&
+    Date.parse(event.endDate) > Date.parse(event.startDate)
+  );
 }

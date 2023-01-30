@@ -16,7 +16,8 @@ export enum Texts {
   startTime = "Start time",
   endDate = "End date",
   endTime = "End time",
-  someNetworkErrorOccurred = "A network error occurred",
+  aNetworkErrorOccurred = "A network error occurred",
+  overlappingWithOtherEvent = "Overlapping with other event(s)",
 
   // days
   dayShortMon = "Mon",

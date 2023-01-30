@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -9,6 +10,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { EventForm } from "../EventForm";
 import { CalendarEvent } from "../../models";
 import { Texts } from "../../constants";
+import { isValidEventData } from "../../utils/eventFunctions";
 import { useCreateDeleteUpdateEvent, apiMethod } from "../../api/hooks";
 
 export interface EventModalProps {
@@ -16,13 +18,22 @@ export interface EventModalProps {
   open: boolean;
   /* Close fuction*/
   handleClose: () => void;
+  checkIfEventOverlapping: (event: CalendarEvent) => boolean;
   /* Calendar event */
   event: CalendarEvent;
 }
 
-export function EventModal({ open, handleClose, event }: EventModalProps) {
+export function EventModal({
+  open,
+  handleClose,
+  event,
+  checkIfEventOverlapping,
+}: EventModalProps) {
   const [eventData, setEventData] = useState<CalendarEvent>(event);
+  const [newEventIsOverlapping, setNewEventIsOverlapping] =
+    useState<boolean>(false);
   const [apiMethod, setApiMethod] = useState<apiMethod>("POST");
+  const [enbleSaveAndUpdate, setEnableSaveAndUpdate] = useState<boolean>(true);
   const [lastCallApiTimestamp, setLastCallApiTimestamp] = useState<
     Date | string
   >("");
@@ -33,44 +44,58 @@ export function EventModal({ open, handleClose, event }: EventModalProps) {
     lastCallApiTimestamp: lastCallApiTimestamp,
   });
 
-  const handleChange = (event: any) => {
-    setEventData({ ...eventData, [event.target.name]: event.target.value });
+  const handleModalClose = () => {
+    setNewEventIsOverlapping(false);
+    handleClose();
   };
 
-  //  const {error, isError, isLoading, result} = useCreateEvent({event: event});
+  const handleChange = (event: any) => {
+    const newEventState: CalendarEvent = {
+      ...eventData,
+      [event.target.name]: event.target.value,
+    };
+    setEventData(newEventState);
+    setEnableSaveAndUpdate(isValidEventData(newEventState));
+  };
+
   const modalTitle =
-    event && event._id && event._id !== "-1"
+    event && event._id && event._id !== ""
       ? Texts.editEvent
       : Texts.createNewEvent;
 
-  /*
-  TODO - handle result/error response
-  */
   const handleCreate = () => {
+    const overlappingEvent = checkIfEventOverlapping(eventData);
     setApiMethod("POST");
-    setLastCallApiTimestamp(new Date());
-    setTimeout(function () {
-      handleClose();
-      setLastCallApiTimestamp("");
-    }, 500);
+    setNewEventIsOverlapping(overlappingEvent);
+    if (!overlappingEvent) {
+      setLastCallApiTimestamp(new Date());
+      setTimeout(function () {
+        setLastCallApiTimestamp("");
+        handleModalClose();
+      }, 300);
+    }
   };
 
   const handleDelete = () => {
     setApiMethod("DELETE");
     setLastCallApiTimestamp(new Date());
     setTimeout(function () {
-      handleClose();
       setLastCallApiTimestamp("");
-    }, 500);
+      handleModalClose();
+    }, 300);
   };
 
   const handleUpdate = () => {
+    const overlappingEvent = checkIfEventOverlapping(eventData);
     setApiMethod("PUT");
-    setLastCallApiTimestamp(new Date());
-    setTimeout(function () {
-      handleClose();
-      setLastCallApiTimestamp("");
-    }, 500);
+    setNewEventIsOverlapping(overlappingEvent);
+    if (!overlappingEvent) {
+      setLastCallApiTimestamp(new Date());
+      setTimeout(function () {
+        setLastCallApiTimestamp("");
+        handleModalClose();
+      }, 300);
+    }
   };
 
   useEffect(() => {
@@ -79,8 +104,8 @@ export function EventModal({ open, handleClose, event }: EventModalProps) {
 
   return (
     <Dialog
-      onClose={handleClose}
-      aria-labelledby="customized-dialog-title"
+      onClose={handleModalClose}
+      aria-labelledby="dialog-title"
       open={open}
     >
       <DialogTitle sx={{ m: 0, p: 2 }}>
@@ -88,7 +113,7 @@ export function EventModal({ open, handleClose, event }: EventModalProps) {
         <IconButton
           title={Texts.close}
           aria-label="close"
-          onClick={handleClose}
+          onClick={handleModalClose}
           sx={{
             position: "absolute",
             right: 8,
@@ -101,22 +126,36 @@ export function EventModal({ open, handleClose, event }: EventModalProps) {
       </DialogTitle>
       <DialogContent dividers>
         <EventForm event={eventData} handleChange={handleChange} />
+        {newEventIsOverlapping ? (
+          <Alert severity="warning">{Texts.overlappingWithOtherEvent}</Alert>
+        ) : (
+          <> </>
+        )}
       </DialogContent>
       <DialogActions>
         {/* Show delete and update buttons for an exesting element.
-            Only show save button for new events
+            Only show save button for new events (after posting,
+            the events are refetched the new event may get an ID.
          */}
-        {event?._id !== "-1" ? (
+        {apiMethod !== "POST" ? (
           <>
             <Button color="error" variant="outlined" onClick={handleDelete}>
               {Texts.delete}
             </Button>
-            <Button variant="outlined" onClick={handleUpdate}>
+            <Button
+              variant="outlined"
+              disabled={!enbleSaveAndUpdate}
+              onClick={handleUpdate}
+            >
               {Texts.update}
             </Button>
           </>
         ) : (
-          <Button variant="outlined" onClick={handleCreate}>
+          <Button
+            variant="outlined"
+            disabled={!enbleSaveAndUpdate}
+            onClick={handleCreate}
+          >
             {Texts.save}
           </Button>
         )}

@@ -1,50 +1,75 @@
-import { CSSProperties, ReactElement, useState } from "react";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import Button from "@mui/material/Button";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { useEffect, useState } from "react";
 import {
-  getHourStartTime,
-  getDateInFormatYYYYMMDD,
-  getDayAndMonth,
   getTimeFromDate,
-  getWeekdayLong,
-  getMonthNames,
 } from "../../utils/dateFunctions";
-import { getDayEvents } from "../../utils/eventFunctions";
+import { config } from "../../constants/config";
+import {
+  getDayEvents,
+  getEventCSSHeightAndTtartPosition,
+  emptyEventWithStartAndEndTimestamp,
+  isEventOverlapping,
+  getEmptyEvent,
+} from "../../utils/eventFunctions";
 import { EventModal } from "../EventModal";
-import { Texts } from "../../constants";
+import { CalendarHeader, TimeMarkers, EventContent } from "./CalendarParts";
 import { CalendarEvent } from "../../models";
 import {
-  CalendarHeader,
-  MonthAndName,
-  CalendarMonthNameYear,
-  CalendarActivity,
-  CalendarTimeOrLocation,
-  CalEvent,
+  StyledCalEvent,
   CalendarHolder,
   StyledContainer,
-  StyledItem,
   StyledDayItem,
   Timeline,
-  TimeMarker,
 } from "./Calendar.styles";
 
+type viewHour =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+  | 22
+  | 23;
+
 export interface CalerdarProps {
-  /* Calendar exents */
+  /** Calendar exents */
   events: CalendarEvent[];
-  /* Todays date */
+  /** Boolean whether events are being loaded or not */
+  eventsAreLoading: boolean;
+  /** Starting view hour for calendar */
+  startViewingHour?: viewHour;
+  /** End view hour for calendar */
+  endViewingHour?: viewHour;
+  /** Todays date */
   todaysDate: Date;
-  /* Selected date */
+  /** Selected date */
   currentDate: Date;
-  /** Switch week */
+  /** Function for switching to previous week */
   viewPreviousWeek: () => void;
+  /** Function for switching to current week */
   viewCurrentWeek: () => void;
+  /** Function for switching to next week */
   viewNextWeek: () => void;
   refetchEvents: () => void;
 }
 
-interface CalendarDay {
+export interface CalendarDay {
   calendarDate: Date;
   dayEvents: CalendarEvent[];
 }
@@ -53,33 +78,31 @@ interface CalendarDay {
  * A week calendar display, each hour corresponds to 60px
  */
 export function Calendar({
-  todaysDate,
   currentDate,
   events,
+  eventsAreLoading,
+  startViewingHour = 0,
+  endViewingHour = 23,
   viewPreviousWeek,
   viewCurrentWeek,
   viewNextWeek,
   refetchEvents,
 }: CalerdarProps) {
-  const months = getMonthNames();
-
   const [open, setOpen] = useState(false);
   const [clickYPosition, setClickYPosition] = useState<number>(0);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>({
-    activity: "",
-    endDate: "",
-    location: "",
-    startDate: "",
-    _id: "-1",
-  });
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>(
+    getEmptyEvent()
+  );
   const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    refetchEvents();
+  const handleClose = (doRefetch: Boolean = true) => {
+    if (doRefetch) {
+      refetchEvents();
+    }
     setOpen(false);
   };
-
-  const currentMonthName = months[currentDate.getMonth()];
-  const currentYear: number = currentDate.getFullYear();
+  const viewHeightHour =
+    endViewingHour > startViewingHour ? endViewingHour - startViewingHour : 24;
+  const viewHeight = viewHeightHour * config.hourSlotHeight;
 
   // the days of selected week
   const calendarDays: CalendarDay[] = getCalendarDaysForSelectedWeek(
@@ -87,17 +110,23 @@ export function Calendar({
     events
   );
 
+  function checkIfEventOverlapping(event: CalendarEvent): boolean {
+    let isOverlapping = false;
+    events.every((compareEvent) => {
+      if (isEventOverlapping(event, compareEvent)) {
+        isOverlapping = true;
+        return false;
+      }
+      return true;
+    });
+    return isOverlapping;
+  }
+
   const createNewEvent = (date: any) => {
-    const cleanDate = getDateInFormatYYYYMMDD(date);
-    const startTime = getHourStartTime(clickYPosition);
-    const endTime = getHourStartTime(1 + clickYPosition);
-    const viewEvent: CalendarEvent = {
-      _id: "-1",
-      activity: "",
-      startDate: cleanDate + " " + startTime,
-      endDate: cleanDate + " " + endTime,
-      location: "",
-    };
+    const viewEvent: CalendarEvent = emptyEventWithStartAndEndTimestamp(
+      date,
+      clickYPosition
+    );
     setSelectedEvent(viewEvent);
     handleOpen();
   };
@@ -116,61 +145,50 @@ export function Calendar({
     var topPos: number = element
       ? Math.ceil(element.getBoundingClientRect().top)
       : 0;
-    const clickYPosition = Math.ceil((e.clientY - topPos) / 61) - 1;
+    const clickYPosition =
+      Math.ceil((e.clientY - topPos) / config.hourSlotHeight) - 1;
 
     setClickYPosition(clickYPosition);
   };
 
+  useEffect(() => {
+    const element = document.getElementById("calendar-holder");
+    if (element !== undefined && element !== null) {
+      const startViewingHourPosition = startViewingHour*config.hourSlotHeight+1;
+      console.log("scoll");
+      element.scrollTo({
+            top: startViewingHourPosition,
+            behavior: "smooth",
+        });
+    }
+  },[startViewingHour]);
+
   return (
     <div>
-      <EventModal open={open} handleClose={handleClose} event={selectedEvent} />
-      <CalendarHeader>
-        <CalendarMonthNameYear>
-          {currentMonthName} {currentYear}
-        </CalendarMonthNameYear>
-        <ButtonGroup
-          size="small"
-          aria-label="small button group"
-          style={{ marginLeft: "auto" }}
-        >
-          <Button
-            title={Texts.viewPreviousWeek}
-            onClick={() => viewPreviousWeek()}
-            variant="outlined"
-            startIcon={<ArrowBackIosIcon />}
-          />
-          <Button onClick={() => viewCurrentWeek()} variant="outlined">
-            {Texts.today}
-          </Button>
-          <Button
-            title={Texts.viewNextWeek}
-            onClick={() => viewNextWeek()}
-            variant="outlined"
-            startIcon={<ArrowForwardIosIcon />}
-          />
-        </ButtonGroup>
-      </CalendarHeader>
-      <CalendarHolder>
+      <EventModal
+        open={open}
+        handleClose={handleClose}
+        event={selectedEvent}
+        checkIfEventOverlapping={checkIfEventOverlapping}
+      />
+      <CalendarHeader
+        currentDate={currentDate}
+        calendarDays={calendarDays}
+        viewPreviousWeek={viewPreviousWeek}
+        viewCurrentWeek={viewCurrentWeek}
+        viewNextWeek={viewNextWeek}
+      />
+      <CalendarHolder viewHeight={viewHeight} id="calendar-holder">
         <Timeline>
-          <StyledItem> </StyledItem>
-          {getDayHours()}
+          <TimeMarkers />
         </Timeline>
-        <div>
-          <StyledContainer>
-            {calendarDays.map((day: CalendarDay, index) => (
-              <StyledItem key={index}>
-                <div>{getWeekdayLong(day.calendarDate)}</div>
-                <MonthAndName>{getDayAndMonth(day.calendarDate)}</MonthAndName>
-              </StyledItem>
-            ))}
-          </StyledContainer>
-
           {/* Calendar columns */}
           <StyledContainer id="calendar-content">
             {calendarDays.map((day, index) => {
               let sumEventHeights: number = 0;
               return (
                 <StyledDayItem
+                  isLoading={eventsAreLoading}
                   key={index}
                   onClick={() => createNewEvent(day.calendarDate)}
                   onMouseDown={onMouseDown}
@@ -181,79 +199,32 @@ export function Calendar({
                     const startTime: string = getTimeFromDate(
                       dayEvent.startDate
                     );
-                    const endTime: string = getTimeFromDate(dayEvent.endDate);
                     const className: string | undefined =
-                      startTime === "00:00" ? "midnight-event" : undefined;
+                      startTime === config.startTimeMidnght
+                        ? "midnight-event"
+                        : undefined;
                     const topPosition = Number(startPosition) - sumEventHeights;
                     sumEventHeights = sumEventHeights + Number(height);
 
-                    const smallStyle: CSSProperties =
-                      Number(height) < 20
-                        ? { position: "relative", top: "-8px" }
-                        : {};
                     return (
-                      <CalEvent
+                      <StyledCalEvent
                         topPosition={String(topPosition)}
                         itemHeight={String(height)}
                         key={dayEvent._id}
                         className={className}
                         onClick={(e: any) => editEvent(e, dayEvent)}
                       >
-                        {Number(height) > 59 ? (
-                          <>
-                            <CalendarTimeOrLocation>
-                              {startTime} - {endTime}
-                            </CalendarTimeOrLocation>
-                            <CalendarActivity>
-                              {dayEvent.activity}
-                            </CalendarActivity>
-                            <CalendarTimeOrLocation>
-                              {dayEvent.location}
-                            </CalendarTimeOrLocation>
-                          </>
-                        ) : (
-                          <CalendarTimeOrLocation
-                            style={smallStyle}
-                            title={`${startTime} - ${endTime}`}
-                          >{`${dayEvent.activity} ${dayEvent.location}`}</CalendarTimeOrLocation>
-                        )}
-                      </CalEvent>
+                        <EventContent dayEvent={dayEvent} height={height} />
+                      </StyledCalEvent>
                     );
                   })}
                 </StyledDayItem>
               );
             })}
           </StyledContainer>
-        </div>
       </CalendarHolder>
     </div>
   );
-}
-
-function getDayHours(): ReactElement[] {
-  const hours: ReactElement[] = [];
-  for (var i = 0; i < 24; ++i) {
-    hours.push(<TimeMarker key={i}>{getHourStartTime(i)}</TimeMarker>);
-  }
-  return hours;
-}
-
-/**
- * Returns of top position and height for the event
- */
-function getEventCSSHeightAndTtartPosition(event: CalendarEvent) {
-  const startTime = getTimeFromDate(event.startDate);
-  const endTime = getTimeFromDate(event.endDate);
-  const diff =
-    new Date(event.endDate).valueOf() - new Date(event.startDate).valueOf();
-  const hourStart: number = Number(startTime.split(":")[0]);
-  const minuteStart: number = Number(startTime.split(":")[1]);
-  const hourEnd: number = Number(endTime.split(":")[0]);
-  const hourDiff: number = Math.floor(hourEnd - hourStart);
-  const startPosition: number = minuteStart + Number(hourStart * 61 - 1); //diffTop/1000/60;
-  const eventHeight: number = diff / 1000 / 60 + hourDiff + 1;
-
-  return [startPosition, eventHeight];
 }
 
 // Get calendar days for selected week
