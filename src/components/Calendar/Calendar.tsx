@@ -154,14 +154,13 @@ export function Calendar({
   useEffect(() => {
     const element = document.getElementById("calendar-holder");
     if (element !== undefined && element !== null) {
-      const startViewingHourPosition = startViewingHour*config.hourSlotHeight+1;
-      console.log("scoll");
+      const startViewingHourPosition = startViewingHour * config.hourSlotHeight + 1;
       element.scrollTo({
-            top: startViewingHourPosition,
-            behavior: "smooth",
-        });
+        top: startViewingHourPosition,
+        behavior: "smooth",
+      });
     }
-  },[startViewingHour]);
+  }, [startViewingHour]);
 
   return (
     <div>
@@ -182,46 +181,46 @@ export function Calendar({
         <Timeline>
           <TimeMarkers />
         </Timeline>
-          {/* Calendar columns */}
-          <StyledContainer id="calendar-content">
-            {calendarDays.map((day, index) => {
-              let sumEventHeights: number = 0;
-              return (
-                <StyledDayItem
-                  isLoading={eventsAreLoading}
-                  key={index}
-                  onClick={() => createNewEvent(day.calendarDate)}
-                  onMouseDown={onMouseDown}
-                >
-                  {day.dayEvents.map((dayEvent) => {
-                    const [startPosition, height] =
-                      getEventCSSHeightAndTtartPosition(dayEvent);
-                    const startTime: string = getTimeFromDate(
-                      dayEvent.startDate
-                    );
-                    const className: string | undefined =
-                      startTime === config.startTimeMidnght
-                        ? "midnight-event"
-                        : undefined;
-                    const topPosition = Number(startPosition) - sumEventHeights;
-                    sumEventHeights = sumEventHeights + Number(height);
+        {/* Calendar columns */}
+        <StyledContainer id="calendar-content">
+          {calendarDays.map((day, index) => {
+            let sumEventHeights: number = 0;
+            return (
+              <StyledDayItem
+                isLoading={eventsAreLoading}
+                key={index}
+                onClick={() => createNewEvent(day.calendarDate)}
+                onMouseDown={onMouseDown}
+              >
+                {day.dayEvents.map((dayEvent) => {
+                  const [startPosition, height] =
+                    getEventCSSHeightAndTtartPosition(dayEvent);
+                  const startTime: string = getTimeFromDate(
+                    dayEvent.startDate
+                  );
+                  const className: string | undefined =
+                    startTime === config.startTimeMidnght
+                      ? "midnight-event"
+                      : undefined;
+                  const topPosition = Number(startPosition) - sumEventHeights;
+                  sumEventHeights = sumEventHeights + Number(height);
 
-                    return (
-                      <StyledCalEvent
-                        topPosition={String(topPosition)}
-                        itemHeight={String(height)}
-                        key={dayEvent._id}
-                        className={className}
-                        onClick={(e: any) => editEvent(e, dayEvent)}
-                      >
-                        <EventContent dayEvent={dayEvent} height={height} />
-                      </StyledCalEvent>
-                    );
-                  })}
-                </StyledDayItem>
-              );
-            })}
-          </StyledContainer>
+                  return (
+                    <StyledCalEvent
+                      topPosition={String(topPosition)}
+                      itemHeight={String(height)}
+                      key={dayEvent._id}
+                      className={className}
+                      onClick={(e: any) => editEvent(e, dayEvent)}
+                    >
+                      <EventContent dayEvent={dayEvent} height={height} />
+                    </StyledCalEvent>
+                  );
+                })}
+              </StyledDayItem>
+            );
+          })}
+        </StyledContainer>
       </CalendarHolder>
     </div>
   );
