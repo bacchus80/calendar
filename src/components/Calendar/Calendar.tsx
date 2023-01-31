@@ -75,7 +75,7 @@ export interface CalendarDay {
 }
 
 /**
- * A week calendar display, each hour corresponds to 60px
+ * A week calendar display
  */
 export function Calendar({
   currentDate,
@@ -104,7 +104,7 @@ export function Calendar({
     endViewingHour > startViewingHour ? endViewingHour - startViewingHour : 24;
   const viewHeight = viewHeightHour * config.hourSlotHeight;
 
-  // the days of selected week
+  // the weeks date with events of selected week
   const calendarDays: CalendarDay[] = getCalendarDaysForSelectedWeek(
     currentDate,
     events
@@ -226,7 +226,7 @@ export function Calendar({
   );
 }
 
-// Get calendar days for selected week
+/** Get calendar days for selected week */
 function getCalendarDaysForSelectedWeek(
   currentDate: Date,
   events: CalendarEvent[]

@@ -45,6 +45,7 @@ export function EventModal({
   });
 
   const handleModalClose = () => {
+    setApiMethod("PUT");
     setNewEventIsOverlapping(false);
     handleClose();
   };
@@ -135,9 +136,9 @@ export function EventModal({
       <DialogActions>
         {/* Show delete and update buttons for an exesting element.
             Only show save button for new events (after posting,
-            the events are refetched the new event may get an ID.
+            the events are refetched so the event may get an ID.
          */}
-        {apiMethod !== "POST" ? (
+        {eventData._id !== "" ? (
           <>
             <Button color="error" variant="outlined" onClick={handleDelete}>
               {Texts.delete}
