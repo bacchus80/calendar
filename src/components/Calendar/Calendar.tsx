@@ -88,7 +88,7 @@ export function Calendar({
   viewNextWeek,
   refetchEvents,
 }: CalerdarProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [clickYPosition, setClickYPosition] = useState<number>(0);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent>(
     getEmptyEvent()
@@ -102,7 +102,8 @@ export function Calendar({
   };
   const viewHeightHour =
     endViewingHour > startViewingHour ? endViewingHour - startViewingHour : 24;
-  const viewHeight = viewHeightHour * config.hourSlotHeight;
+  const height = viewHeightHour * config.hourSlotHeight;
+  const viewHeight = config.expandViewHeight ? Math.ceil(height + config.hourSlotHeight / 2) : height;
 
   // the weeks date with events of selected week
   const calendarDays: CalendarDay[] = getCalendarDaysForSelectedWeek(
@@ -154,7 +155,9 @@ export function Calendar({
   useEffect(() => {
     const element = document.getElementById("calendar-holder");
     if (element !== undefined && element !== null) {
-      const startViewingHourPosition = startViewingHour * config.hourSlotHeight + 1;
+      const height = startViewingHour * config.hourSlotHeight + 1;
+      const startHeightPos = config.expandViewHeight ? Math.ceil(height - config.hourSlotHeight / 4) : height;
+      const startViewingHourPosition = startHeightPos;
       element.scrollTo({
         top: startViewingHourPosition,
         behavior: "smooth",

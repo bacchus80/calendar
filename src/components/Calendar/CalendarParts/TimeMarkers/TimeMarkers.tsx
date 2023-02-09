@@ -2,15 +2,13 @@ import { getHourStartTime } from "../../../../utils/dateFunctions";
 import { TimeMarker } from "../../Calendar.styles";
 
 export function TimeMarkers(): any {
-  const hours: number[] = [];
-  for (var i = 0; i < 24; ++i) {
-    hours.push(i);
-  }
+  const hours: number[] = [...Array(24).keys()];
+  const timeMarkers = hours.map((hour, index) => (
+    <TimeMarker key={index}>{getHourStartTime(hour)}</TimeMarker>
+  ));
   return (
     <>
-      {hours.map((hour, index) => (
-        <TimeMarker key={index}>{getHourStartTime(hour)}</TimeMarker>
-      ))}
+      {timeMarkers}
     </>
   );
 }

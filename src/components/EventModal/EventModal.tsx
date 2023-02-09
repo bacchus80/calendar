@@ -50,7 +50,7 @@ export function EventModal({
     handleClose();
   };
 
-  const handleChange = (event: any) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newEventState: CalendarEvent = {
       ...eventData,
       [event.target.name]: event.target.value,

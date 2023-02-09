@@ -5,7 +5,7 @@ import { CalendarEvent } from "../../models";
 
 export interface EventFormProps {
   event: CalendarEvent;
-  handleChange: (event: any) => void;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function EventForm({ event, handleChange }: EventFormProps) {
@@ -48,12 +48,6 @@ export function EventForm({ event, handleChange }: EventFormProps) {
         name="location"
         onChange={handleChange}
       />
-      {/*
-      <br />
-              <Button variant="outlined" type="submit" onClick={handleClick}>
-          {Texts.save}
-        </Button>
-    */}
     </Box>
   );
 }

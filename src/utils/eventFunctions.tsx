@@ -12,7 +12,7 @@ import {
 import { config } from "../constants";
 
 /**
- * Return events for selected date given a set of calendar evets
+ * Return events for selected date given a set of calendar events
  *
  * @param date - Date for finding events for this day
  * @param events - Calendar events
@@ -21,16 +21,14 @@ export function getDayEvents(
   date: Date,
   events: CalendarEvent[]
 ): CalendarEvent[] {
-  const result: CalendarEvent[] = [];
-  events.forEach((event: CalendarEvent) => {
+  const dayEvents: CalendarEvent[] = events.filter((event: CalendarEvent) => {
     const compareDate = date.toLocaleDateString("sv");
     const eventDate = getDateFromDate(event.startDate);
-    if (eventDate === compareDate) {
-      result.push(event);
-    }
+
+    return eventDate === compareDate;
   });
 
-  return result;
+  return dayEvents;
 }
 
 /**
